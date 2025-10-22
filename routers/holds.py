@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from sqlalchemy import text
-from db import get_db
+from app.db import get_db
 from datetime import datetime, timedelta
 import uuid
 

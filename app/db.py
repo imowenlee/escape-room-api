@@ -19,7 +19,7 @@ def get_db():
 
 def init_db():
     # Import models here to create tables
-    from models import User, Room, TimeSlot, Hold
+    from app.models import User, Room, TimeSlot, Hold
     Base.metadata.create_all(bind=engine)
 
     # Seed minimal data if empty
