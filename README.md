@@ -132,6 +132,76 @@ Release a hold (by owner only).
 - Ensures correctness even if background cleanup is never run.
 
 ---
+## 🧪 API Test Scenarios
+
+This section describes the main test cases for the **Slot Booking & Hold** system.
+
+---
+
+### 🔹 Basic Flow
+
+1. **List available slots**
+   - `GET /slots` → should return all available (non-held, non-booked) slots.
+
+2. **Create → Confirm / Release → Book Flow**
+   - Create a hold for a slot → confirm the hold → verify booking success.
+   - Alternative path: release the hold instead of confirming.
+   - Test both:
+     - booking confirmed by the same user
+     - booking attempted by another user (should be rejected).
+
+3. **Concurrent Holds**
+   - `user_1` creates a hold on a slot.
+   - `user_2` tries to create a hold for the same slot → **rejected**.
+   - Any attempt to hold a slot that is already **held** or **booked** → **rejected**.
+
+---
+
+### 🔸 A. Expiration
+
+1. **Lazy Expiration**
+   - Attempt to book an expired hold → should succeed because hold is considered expired and slot becomes available again.
+
+2. **Confirm Expired Hold**
+   - Confirming an already expired hold → **410** response:  
+     `"Hold not found or expired."`
+
+---
+
+### 🔸 B. Ownership
+
+1. **Confirm Another User's Hold**
+   - Attempting to confirm a hold not owned by the user → **rejected**.
+
+2. **Release Another User's Hold**
+   - Attempting to release a hold not owned by the user → **rejected**.
+
+---
+
+### 🔸 C. Idempotency
+
+1. **Double Confirm**
+   - Confirming the same hold twice → second confirmation should be **idempotent** (no error, or no-op).
+
+2. **Release Confirmed Hold**
+   - Releasing a hold that is already confirmed/booked → should be **rejected** or **no-op**, depending on design.
+
+---
+
+### 🔸 D. Validation
+
+1. **Missing Required Fields**
+   - Send a malformed request (e.g. `POST /holds` without required fields) → should return validation error.
+
+---
+
+### 🔸 E. Visibility
+
+1. **User-aware Slot Status**
+   - `GET /slots` should include:
+     - `HELD_BY_ME` — slots held by the current user.
+     - `HELD_BY_OTHER` — slots held by other users.
+
 
 ## 🧪 Running Tests
 ```bash
