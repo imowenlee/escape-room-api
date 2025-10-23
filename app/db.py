@@ -30,6 +30,8 @@ def init_db():
         if not db.query(User).first():
             u = User(id="u-demo", name="Demo User", email="demo@example.com")
             db.add(u)
+            u2 = User(id="u-2", name="2nd Demo User", email="u2@example.com")
+            db.add(u2)
         if not db.query(Room).first():
             r = Room(id="r-101", name="Mystery Cave", capacity=6)
             db.add(r)

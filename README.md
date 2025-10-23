@@ -16,7 +16,7 @@ pip install -r requirements.txt
 
 ### 2️⃣ Run API server
 ```bash
-uvicorn main:app --reload
+uvicorn app.main:app --reload
 ```
 Visit → [http://127.0.0.1:8000](http://127.0.0.1:8000)
 
@@ -25,14 +25,15 @@ Visit → [http://127.0.0.1:8000](http://127.0.0.1:8000)
 ## 🧱 Project Structure
 ```
 escape-room-api/
-├─ main.py          # FastAPI entry point
-├─ db.py            # DB engine setup + seed data
-├─ models.py        # ORM models
+├─ app/
+│   ├─ main.py           # FastAPI entry point
+│   ├─  db.py            # DB engine setup + seed data
+│   ├─  models.py        # ORM models
 ├─ routers/
-│   ├─ holds.py     # /holds endpoints (create, confirm, release)
-│   └─ slots.py     # /slots endpoints (list user-aware availability)
+│   ├─ holds.py          # /holds endpoints (create, confirm, release)
+│   └─ slots.py          # /slots endpoints (list user-aware availability)
 ├─ tests/
-│   └─ test_holds.py  # pytest examples
+│   └─ test_holds.py     # pytest
 └─ requirements.txt
 ```
 
@@ -141,30 +142,52 @@ This section describes the main test cases for the **Slot Booking & Hold** syste
 ### 🔹 Basic Flow
 
 1. **List available slots**
-   - `GET /slots` → should return all available (non-held, non-booked) slots.
+   1. **List available slots**  
+   - `GET /slots` → should return all available (non-held, non-booked) slots.  
+   - The first image shows results **without** `user_id`; the second includes `user_id`, which highlights which slots are held or booked by the current user.  
+   ![query without user_id](docs/demo_1_1.png)  
+   ![query with user_id](docs/demo_1_2.png)  
+   ![time_slots table](docs/demo_1_3.png)
 
-2. **Create → Confirm / Release → Book Flow**
-   - Create a hold for a slot → confirm the hold → verify booking success.
-   - Alternative path: release the hold instead of confirming.
-   - Test both:
-     - booking confirmed by the same user
-     - booking attempted by another user (should be rejected).
+2. **Create → Confirm / Release → Book Flow**  
+   - Create a hold for a slot → confirm the hold → verify booking success.  
+   ![hold the slot s-1](docs/demo_2_1.png)  
+   ![verify from /slots](docs/demo_2_2.png)  
+   ![verify from db](docs/demo_2_3.png)  
+   ![confirm the hold](docs/demo_2_4.png)  
+   ![confirm the hold - db](docs/demo_2_5.png)  
+   ![confirm from u-demo's POV](docs/demo_2_6.png)  
+   ![confirm from another user's POV](docs/demo_2_7.png)
 
-3. **Concurrent Holds**
-   - `user_1` creates a hold on a slot.
-   - `user_2` tries to create a hold for the same slot → **rejected**.
+   - **Alternative path:** release the hold instead of confirming.  
+   ![hold and release slot-2](docs/demo_3_1.png)  
+   ![hold table shows as released](docs/demo_3_2.png)
+
+   - **Test both:**  
+     - Booking confirmed by the same user  
+     - Booking attempted by another user (should be rejected)  
+     ![book unavailable slot](docs/demo_4_1.png)
+
+3. **Concurrent Holds**  
+   - `user_1` creates a hold on a slot.  
+   - `user_2` tries to create a hold for the same slot → **rejected**.  
    - Any attempt to hold a slot that is already **held** or **booked** → **rejected**.
 
 ---
 
-### 🔸 A. Expiration
+### 🔸 **A. Expiration**
 
-1. **Lazy Expiration**
-   - Attempt to book an expired hold → should succeed because hold is considered expired and slot becomes available again.
+1. **Lazy Expiration**  
+   - When a hold expires, the slot should become available again for others to book.  
+   - Attempting to create a hold after expiration should succeed.  
+   ![create hold from u-demo, expired, then booked by u-2](docs/demo_5_1.png)  
+   ![slot-2 is booked by u-2, although u-demo's hold expired](docs/demo_5_2.png)
 
-2. **Confirm Expired Hold**
-   - Confirming an already expired hold → **410** response:  
-     `"Hold not found or expired."`
+2. **Confirm Expired Hold**  
+   - Confirming an already expired hold should return **410 Gone**, indicating the hold is no longer valid.  
+   - Expected response: `"Hold not found or expired."`  
+   ![u-demo hold slot-3, but confirm after expiration](docs/demo_5_3.png)  
+   ![query table showing slot not booked](docs/demo_5_4.png)
 
 ---
 

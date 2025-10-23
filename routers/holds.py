@@ -100,16 +100,17 @@ def confirm_hold(hold_id: str, body: ConfirmBody, db: Session = Depends(get_db))
 @router.post("/{hold_id}/release")
 def release_hold(hold_id: str, body: ReleaseBody, db: Session = Depends(get_db)):
     # Only the owner can release an active hold
-    select_sql = text("""
-        SELECT h.id FROM holds h
-        WHERE h.id = :hold_id
-          AND h.user_id = :user_id
-          AND h.status = 'HOLD'
-    """)
-    row = db.execute(select_sql, {"hold_id": hold_id, "user_id": body.user_id}).fetchone()
-    if not row:
+    res = db.execute(text("""
+        UPDATE holds
+        SET status = 'RELEASED'
+        WHERE id = :hold_id
+          AND user_id = :user_id
+          AND status IN ('HOLD','RELEASED') -- Idempotent
+          AND expires_at > datetime('now')
+    """), {"hold_id": hold_id, "user_id": body.user_id})
+    db.commit()
+
+    if res.rowcount == 0:
         raise HTTPException(status_code=404, detail="Hold not found or not releasable by user.")
 
-    db.execute(text("UPDATE holds SET status = 'RELEASED' WHERE id = :hold_id"), {"hold_id": hold_id})
-    db.commit()
     return {"hold_id": hold_id, "status": "RELEASED"}

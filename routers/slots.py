@@ -26,7 +26,7 @@ def list_slots(
         where = "WHERE s.room_id = :room_id"
         params["room_id"] = room_id
 
-    # Get active hold's user_id if any (LIMIT 1). Using a scalar subquery keeps it SQLite friendly.
+    # Get booked and active hold's user_id if any (LIMIT 1).
     sql = text(f"""
         SELECT
             s.id AS slot_id,
@@ -58,17 +58,15 @@ def list_slots(
     results = []
     for r in rows:
         if r.is_booked:
-            if user_id and r.booked_user_id == user_id:
-                status = "BOOKED_BY_ME"
+            status = "BOOKED_BY_ME" if (user_id and r.booked_user_id == user_id) else "BOOKED_BY_OTHER"
+        elif r.hold_user_id is not None:
+            if user_id:
+                status = "HELD_BY_ME" if r.hold_user_id == user_id else "HELD_BY_OTHER"
             else:
-                status = "BOOKED_BY_OTHER"
-        elif r.hold_user_id is None:
-            status = "AVAILABLE"
+                status = "HELD"
         else:
-            if user_id and r.hold_user_id == user_id:
-                status = "HELD_BY_ME"
-            else:
-                status = "HELD_BY_OTHER" if user_id else "HELD"
+            status = "AVAILABLE"
+
         results.append({
             "slot_id": r.slot_id,
             "room_id": r.room_id,
