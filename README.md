@@ -5,6 +5,21 @@ A minimal **FastAPI + SQLite** project implementing an *escape room booking syst
 
 ---
 
+### 🤖 AI Assistance
+
+This project was developed with the help of **ChatGPT (GPT-5)** for specific parts of the workflow.  
+AI assistance was used to:
+- Generate initial **project boilerplate** (FastAPI setup, directory structure, `db.py`, and `models.py` scaffolding)
+- Draft **example API endpoints** (`/slots`, `/holds`, `/holds/{id}/confirm`, `/holds/{id}/release`)
+- Create **SQLite-friendly SQL queries** and ensure transactional safety
+- Provide **test cases and curl commands** for verification
+- Refine the **README documentation** and improve clarity and formatting
+
+All application logic, debugging, and verification were performed manually,  
+and the final implementation was tested locally to confirm correctness and behavior.
+
+---
+
 ## 🚀 Quick Start
 
 ### 1️⃣ Setup environment
