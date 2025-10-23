@@ -42,8 +42,8 @@ Visit → [http://127.0.0.1:8000](http://127.0.0.1:8000)
 escape-room-api/
 ├─ app/
 │   ├─ main.py           # FastAPI entry point
-│   ├─  db.py            # DB engine setup + seed data
-│   ├─  models.py        # ORM models
+│   ├─ db.py            # DB engine setup + seed data
+│   ├─ models.py        # ORM models
 ├─ routers/
 │   ├─ holds.py          # /holds endpoints (create, confirm, release)
 │   └─ slots.py          # /slots endpoints (list user-aware availability)
